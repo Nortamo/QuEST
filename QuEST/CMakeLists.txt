@@ -47,6 +47,9 @@ message(STATUS "Precision is ${PRECISION}")
 message(STATUS "GPU acceleration is ${GPUACCELERATED}")
 message(STATUS "OMP acceleration is ${MULTITHREADED}")
 message(STATUS "MPI distribution is ${DISTRIBUTED}")
+if(AMD_GPU)
+    message(WARNING "Building for AMD GPUs, experimental and untested")
+endif()
 
 
 # -----------------------------------------------------------------------------
@@ -294,6 +297,9 @@ if (VERBOSE_CMAKE)
     message("   C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
     message("   C compilation flags: ${CMAKE_C_FLAGS}")
     message("   CUDA compilation flags: ${CUDA_NVCC_FLAGS}")
+    if(AMD_GPU)
+        message("   AMD compilation flags: ${HIP_HIPCC_FLAGS}")
+    endif()
     message("   C++ compilation flags: ${CMAKE_CXX_FLAGS}")
 
     message("-- Build type: ${CMAKE_BUILD_TYPE}")
