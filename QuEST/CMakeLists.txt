@@ -308,6 +308,10 @@ else ()
     )
 endif()
 
+set_target_properties(QuEST PROPERTIES PUBLIC_HEADER "include/QuEST.h;include/QuEST_precision.h;include/QuEST_complex.h" )
+install(TARGETS QuEST PUBLIC_HEADER )
+
+
 # ----- Location of header files ----------------------------------------------
 
 target_include_directories(QuEST 
