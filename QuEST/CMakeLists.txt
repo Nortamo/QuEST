@@ -301,6 +301,7 @@ endif ()
 
 if (GPUACCELERATED)
     HIP_ADD_LIBRARY(QuEST ${QuEST_SRC}  )
+    target_link_options(QuEST PRIVATE "LINKER:-lamdhip64")
 else ()
     add_library(QuEST
         ${QuEST_SRC}
