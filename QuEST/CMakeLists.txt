@@ -89,7 +89,7 @@ endif()
 #TODO Add other supported Clang versions if found
 if ( ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang") AND 
         ${GPUACCELERATED} AND
-        NOT("${CMAKE_C_COMPILER_VERSION}" STREQUAL "3.7.0") )
+        NOT("${CMAKE_C_COMPILER_VERSION}" STREQUAL "3.7.0") AND NOT(AMD_GPU) )
     message(WARNING "Some versions of Clang are not NVIDIA-GPU compatible. \
         If compilation fails, try Clang 3.7.")
 endif()
@@ -189,7 +189,7 @@ if (GPUACCELERATED)
                 -O2"
             )
         endif()
-    endif
+    endif()
 endif()
 
 
