@@ -147,8 +147,8 @@ endif ()
 # ----- CUDA FLAGS ------------------------------------------------------------
 
 if (GPUACCELERATED)
-    set (HIPFLAGS ${HIPFLAGS} -fPIC -O2 --offload-arch=gfx90a -lamdhip64  )
-    set (HIP_HIPCC_FLAGS ${HIP_HIPCC_FLAGS} -fPIC -O2 --offload-arch=gfx90a -lamdhip64 )
+    set (HIPFLAGS ${HIPFLAGS} -fPIC -O2 --offload-arch=gfx90a  )
+    set (HIP_HIPCC_FLAGS ${HIP_HIPCC_FLAGS} -fPIC -O2 --offload-arch=gfx90a )
     set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \
         -arch=compute_${GPU_COMPUTE_CAPABILITY} -code=sm_${GPU_COMPUTE_CAPABILITY}"
     )
