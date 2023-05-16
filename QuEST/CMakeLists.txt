@@ -30,9 +30,12 @@ set(PRECISION 2 CACHE STRING
     "Whether to use single, double or quad floating point precision in the state vector. {1,2,4}")
 
 option(GPUACCELERATED "Whether to program will run on GPU. Set to 1 to enable" 0)
+option(AMD_GPU "Wether to target AMD or NVIDIA GPUs Set to 1 to enable" 0)
 
 set(GPU_COMPUTE_CAPABILITY 30 CACHE STRING "GPU hardware dependent, lookup at https://developer.nvidia.com/cuda-gpus. Write without fullstop")
-
+# This is the correct architecture when using MI250X cards
+# A more standard default might make sense
+set(AMD_GPU_ARCH gfx90a CACHE STRING "GPU hardware dependent" )
 
 
 # *****************************************************************************
@@ -111,7 +114,11 @@ if (DISTRIBUTED)
 endif()
 
 if (GPUACCELERATED)
-    find_package(HIP REQUIRED)
+    if (AMD_GPU) 
+        find_package(HIP REQUIRED)
+    else ()
+        find_package(CUDA REQUIRED)
+    endif()    
 endif()
 
 
@@ -147,24 +154,39 @@ endif ()
 # ----- CUDA FLAGS ------------------------------------------------------------
 
 if (GPUACCELERATED)
-    set (HIPFLAGS ${HIPFLAGS} -fPIC -O2 --offload-arch=gfx90a  )
-    set (HIP_HIPCC_FLAGS ${HIP_HIPCC_FLAGS} -fPIC -O2 --offload-arch=gfx90a )
-    set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \
-        -arch=compute_${GPU_COMPUTE_CAPABILITY} -code=sm_${GPU_COMPUTE_CAPABILITY}"
-    )
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    if (AMD_GPU) 
+        set (HIP_HIPCC_FLAGS ${HIP_HIPCC_FLAGS} -fPIC --offload-arch=${AMD_GPU_ARCH} ) 
+        if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+            set (HIP_HIPCC_FLAGS "${HIP_HIPCC_FLAGS} \
+                -O2"
+            )
+        elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+            set (HIP_HIPCC_FLAGS "${HIP_HIPCC_FLAGS} \
+                -G -g -lineinfo"
+            )
+        else()
+            set (HIP_HIPCC_FLAGS "${HIP_HIPCC_FLAGS} \
+                -O2"
+            )
+        endif()
+    else ()
         set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \
-            -O2"
+            -arch=compute_${GPU_COMPUTE_CAPABILITY} -code=sm_${GPU_COMPUTE_CAPABILITY}"
         )
-    elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \
-            -G -g -lineinfo"
-        )
-    else()
-        set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \
-            -O2"
-        )
-    endif()
+        if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+            set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \
+                -O2"
+            )
+        elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+            set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \
+                -G -g -lineinfo"
+            )
+        else()
+            set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} \
+                -O2"
+            )
+        endif()
+    endif
 endif()
 
 
@@ -300,8 +322,16 @@ endif ()
 
 
 if (GPUACCELERATED)
-    HIP_ADD_LIBRARY(QuEST ${QuEST_SRC}  )
-    target_link_options(QuEST PRIVATE "LINKER:-lamdhip64")
+    if (AMD_GPU) 
+        hip_add_library(QuEST ${QuEST_SRC}  )
+        #target_link_options(QuEST PRIVATE "LINKER:-lamdhip64")
+        target_link_libraries(QuEST ${HIP_LIBRARIES})
+    else ()
+        cuda_add_library(QuEST
+        ${QuEST_SRC}
+        )
+        target_link_libraries(QuEST ${CUDA_LIBRARIES})
+    endif()
 else ()
     add_library(QuEST
         ${QuEST_SRC}
@@ -343,7 +373,6 @@ target_link_libraries(QuEST PUBLIC ${MPI_C_LIBRARIES})
 
 # ----- GPU -------------------------------------------------------------------
 
-target_link_libraries(QuEST ${CUDA_LIBRARIES})
 
 
 # ----- Coverage testing with GCC or Clang ------------------------------------
