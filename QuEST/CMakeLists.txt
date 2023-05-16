@@ -300,7 +300,7 @@ endif ()
 
 
 if (GPUACCELERATED)
-    hip_add_library(QuEST ${QuEST_SRC}  )
+    HIP_ADD_LIBRARY(QuEST ${QuEST_SRC}  )
 else ()
     add_library(QuEST
         ${QuEST_SRC}
