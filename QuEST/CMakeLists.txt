@@ -330,7 +330,7 @@ endif ()
 if (GPUACCELERATED)
     if (AMD_GPU) 
         hip_add_library(QuEST ${QuEST_SRC}  )
-        #target_link_options(QuEST PRIVATE "LINKER:-lamdhip64")
+        target_link_options(QuEST PRIVATE "LINKER:-lamdhip64")
         target_link_libraries(QuEST ${HIP_LIBRARIES})
     else ()
         cuda_add_library(QuEST
